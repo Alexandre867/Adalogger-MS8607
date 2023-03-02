@@ -1,3 +1,12 @@
+/*
+Reads pressure, temperature and humidity, writes in CSV file on the SD card.
+Led on Adalogger will be on during initialization and then during measurements.
+Messages about the status of the program will be saved in "log" file.
+
+filename: name of the file
+dtime: time between measurements
+*/
+
 #include <SPI.h>
 #include <SD.h>
 
@@ -6,7 +15,7 @@
 #include <Adafruit_Sensor.h>
 
 
-const String filename = "PHT_rec.csv";    // Filename (less than 8.3 char long)
+const String filename = "PHT_rec.csv";    // File name (less than 8.3 char long)
 
 const int dtime = 3000;   // Delay in ms
 
@@ -18,8 +27,11 @@ Adafruit_MS8607 ms8607;
 const int chipSelect = 4;
 
 // Method to log into "log" file on SD card
+// Write time (in ms) followed by message
+// Return 1 if successful
 bool log(String loginfo) {
-  File logfile = SD.open("log", FILE_WRITE);
+  File logfile = SD.open("log", FILE_WRITE);  // Open the "log" file
+  // If "log" file successfully open, write to it
   if (logfile){
     logfile.println(String(millis()) + ": " + loginfo);
     logfile.close();
@@ -43,18 +55,18 @@ void setup() {
   }
   */
 
-  // see if the card is present and can be initialized:
+  // See if the card is present and can be initialized. Otherwise, stop
   if (!SD.begin(chipSelect)) {
     // log("Card failed, or not present");
-    // don't do anything more:
+    // Don't do anything more:
     while (1);
   }
 
   log("Adafruit MS8607 test.");
-  // Try to initialize!
+  // Try to initialize the sensor
   if (!ms8607.begin()) {
     log("Looking for MS8607 chip.");
-    while (!ms8607.getHumidityResolution()) { delay(10); }
+    while (!ms8607.begin()) { delay(10); }
   }
   log("MS8607 found.");
 
@@ -101,7 +113,7 @@ void setup() {
 void loop() {
   digitalWrite(13, HIGH); // turn the LED on (HIGH is the voltage level)
   
-  // read three sensors
+  // read the sensors
   sensors_event_t temp, pressure, humidity;
   ms8607.getEvent(&pressure, &temp, &humidity);
 
@@ -109,7 +121,7 @@ void loop() {
   String dataString = String(millis()/1000) + ", " + String(pressure.pressure) + ", " + String(humidity.relative_humidity) + ", " + String(temp.temperature);
   // String dataString =  String(millis()/1000) + ", " + String(1013.5) + ", " + String(50.4) + ", " + String(26.2);
 
-  dataFile = SD.open(filename, FILE_WRITE);
+  dataFile = SD.open(filename, FILE_WRITE);   // Open the file for recording the data
 
   // if the file is available, write to it
   if (dataFile) {
