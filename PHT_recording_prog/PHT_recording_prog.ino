@@ -62,6 +62,10 @@ void setup() {
     while (1);
   }
 
+  // Make a new log entry
+  log("");
+  log("-- Start --");
+
   log("Adafruit MS8607 test.");
   // Try to initialize the sensor
   if (!ms8607.begin()) {
@@ -123,8 +127,12 @@ void loop() {
 
   dataFile = SD.open(filename, FILE_WRITE);   // Open the file for recording the data
 
+  // if there is no measurement, record an error and skip recording
+  if (pressure.pressure != 0 && humidity.relative_humidity != 0 && temp.temperature != 0) {
+    log("No PHT measurement");
+  }
   // if the file is available, write to it
-  if (dataFile) {
+  else if (dataFile) {
     dataFile.println(dataString);
     dataFile.close();
 
