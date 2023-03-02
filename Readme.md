@@ -32,4 +32,4 @@ https://learn.adafruit.com/scanning-i2c-addresses/arduino
 - Run `File > Examples > Adafruit MS8607 > sensor_test`
 
 # PHT sensor recording
-- Upload `PHT_recording_prog.ino`
+- Upload [`PHT_recording_prog.ino`](https://github.com/Alexandre867/Adalogger-MS8607/blob/main/PHT_recording_prog/PHT_recording_prog.ino)
