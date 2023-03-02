@@ -128,7 +128,7 @@ void loop() {
   dataFile = SD.open(filename, FILE_WRITE);   // Open the file for recording the data
 
   // if there is no measurement, record an error and skip recording
-  if (pressure.pressure != 0 && humidity.relative_humidity != 0 && temp.temperature != 0) {
+  if (pressure.pressure != 0 && humidity.relative_humidity != 0 && temp.temperature != 0) {
     log("No PHT measurement");
   }
   // if the file is available, write to it
