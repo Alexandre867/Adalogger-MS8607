@@ -23,6 +23,7 @@ const int dtime = 3000;   // Delay in ms
 
 File dataFile;
 Adafruit_MS8607 ms8607;
+float old_pressure = 0, old_hum = 0, old_temp = 0;
 
 const int chipSelect = 4;
 
@@ -55,12 +56,8 @@ void setup() {
   }
   */
 
-  // See if the card is present and can be initialized. Otherwise, stop
-  if (!SD.begin(chipSelect)) {
-    // log("Card failed, or not present");
-    // Don't do anything more:
-    while (1);
-  }
+  // Try to initialize the SD card
+  while (!SD.begin(chipSelect));
 
   // Make a new log entry
   log("");
@@ -100,7 +97,7 @@ void setup() {
     log(filename + " successfully opened.");
     dataFile.println();
     dataFile.println();
-    dataFile.println("time s, pressure hPa, humidity rH, temperature C");
+    dataFile.println("time s, pressure hPa, relative humidity \%, temperature C");
     dataFile.close();
   }
   // if the file isn't open, pop up an error and stop
@@ -127,21 +124,26 @@ void loop() {
 
   dataFile = SD.open(filename, FILE_WRITE);   // Open the file for recording the data
 
-  // if there is no measurement, record an error and skip recording
-  if (pressure.pressure != 0 && humidity.relative_humidity != 0 && temp.temperature != 0) {
-    log("No PHT measurement");
-  }
   // if the file is available, write to it
-  else if (dataFile) {
+  if (dataFile) {
     dataFile.println(dataString);
     dataFile.close();
 
-    digitalWrite(13, LOW); // turn the LED off by making the voltage LOW
+    // if there is no measurement, record an error
+    if (pressure.pressure == old_pressure && humidity.relative_humidity == old_hum && temp.temperature == old_temp) {
+    log("Warning: no PHT measurement");
+    }
+    else digitalWrite(13, LOW); // turn the LED off by making the voltage LOW
   }
   // if the file isn't open, record an error
   else {
-    log("error opening " + filename);
+    SD.begin(chipSelect);
+    log("Error opening " + filename);
   }
 
-  delay(dtime);   // Wait for given time
+  old_pressure = pressure.pressure;
+  old_hum = humidity.relative_humidity;
+  old_temp = temp.temperature;
+  
+  delay((millis()/dtime+1)*dtime-millis());   // Wait until the next multiple of dtime
 }

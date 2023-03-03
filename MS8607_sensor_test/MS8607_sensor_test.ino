@@ -1,56 +1,156 @@
-// Basic demo for reading Humidity and Temperature
+/*
+Reads pressure, temperature and humidity, writes in CSV file on the SD card.
+Led on Adalogger will be on during initialization and then during measurements.
+Messages about the status of the program will be saved in "log" file.
+
+filename: name of the file
+dtime: time between measurements
+*/
+
+// #include <SPI.h>
+// #include <SD.h>
+
 #include <Wire.h>
 #include <Adafruit_MS8607.h>
 #include <Adafruit_Sensor.h>
 
+
+// const String filename = "PHT_rec.csv";    // File name (less than 8.3 char long)
+
+const int dtime = 3000;   // Delay in ms
+
+
+
+// File dataFile;
 Adafruit_MS8607 ms8607;
+float old_pressure = 0, old_hum = 0, old_temp = 0;
 
-// #define WIRE Wire
+/* const int chipSelect = 4;
 
-void setup(void) {
+// Method to log into "log" file on SD card
+// Write time (in ms) followed by message
+// Return 1 if successful
+bool log(String loginfo) {
+  File logfile = SD.open("log", FILE_WRITE);  // Open the "log" file
+  // If "log" file successfully open, write to it
+  if (logfile){
+    logfile.println(String(millis()) + ": " + loginfo);
+    logfile.close();
+    return 1;
+  }
+  else {
+    return 0;
+  }
+} */
+
+void setup() {  
+  // initialize digital pin 13 as an output.
+  pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH); // turn the LED on (HIGH is the voltage level)
+
+  // /*
+  // Open serial communications and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) delay(10);     // will pause Zero, Leonardo, etc until serial console opens
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+  // */
 
-  Serial.print("Adafruit MS8607 test: ");
+  // Try to initialize the SD card
+  // while (!SD.begin(chipSelect));
 
-  // Try to initialize!
+  // Make a new log entry
+  Serial.println("");
+  Serial.println("-- Start --");
+
+  Serial.println("Adafruit MS8607 test.");
+  // Try to initialize the sensor
   if (!ms8607.begin()) {
-    Serial.println("looking for MS8607.");
+    Serial.println("Looking for MS8607 chip.");
     while (!ms8607.begin()) { delay(10); }
   }
-  Serial.println("MS8607 Found!");
+  Serial.println("MS8607 found.");
 
   ms8607.setHumidityResolution(MS8607_HUMIDITY_RESOLUTION_OSR_8b);
-  Serial.print("Humidity resolution set to ");
   switch (ms8607.getHumidityResolution()){
-    case MS8607_HUMIDITY_RESOLUTION_OSR_12b: Serial.println("12-bit"); break;
-    case MS8607_HUMIDITY_RESOLUTION_OSR_11b: Serial.println("11-bit"); break;
-    case MS8607_HUMIDITY_RESOLUTION_OSR_10b: Serial.println("10-bit"); break;
-    case MS8607_HUMIDITY_RESOLUTION_OSR_8b: Serial.println("8-bit"); break;
+    case MS8607_HUMIDITY_RESOLUTION_OSR_12b: Serial.println("Humidity resolution set to: 12-bit"); break;
+    case MS8607_HUMIDITY_RESOLUTION_OSR_11b: Serial.println("Humidity resolution set to: 11-bit"); break;
+    case MS8607_HUMIDITY_RESOLUTION_OSR_10b: Serial.println("Humidity resolution set to: 10-bit"); break;
+    case MS8607_HUMIDITY_RESOLUTION_OSR_8b:  Serial.println("Humidity resolution set to: 8-bit"); break;
   }
+
   // ms8607.setPressureResolution(MS8607_PRESSURE_RESOLUTION_OSR_4096);
-  Serial.print("Pressure and Temperature resolution set to ");
   switch (ms8607.getPressureResolution()){
-    case MS8607_PRESSURE_RESOLUTION_OSR_256: Serial.println("256"); break;
-    case MS8607_PRESSURE_RESOLUTION_OSR_512: Serial.println("512"); break;
-    case MS8607_PRESSURE_RESOLUTION_OSR_1024: Serial.println("1024"); break;
-    case MS8607_PRESSURE_RESOLUTION_OSR_2048: Serial.println("2048"); break;
-    case MS8607_PRESSURE_RESOLUTION_OSR_4096: Serial.println("4096"); break;
-    case MS8607_PRESSURE_RESOLUTION_OSR_8192: Serial.println("8192"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_256: Serial.println("Pressure and Temperature resolution set to: 256"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_512: Serial.println("Pressure and Temperature resolution set to: 512"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_1024: Serial.println("Pressure and Temperature resolution set to: 1024"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_2048: Serial.println("Pressure and Temperature resolution set to: 2048"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_4096: Serial.println("Pressure and Temperature resolution set to: 4096"); break;
+    case MS8607_PRESSURE_RESOLUTION_OSR_8192: Serial.println("Pressure and Temperature resolution set to: 8192"); break;
   }
-  Serial.println("");
+
+  /* // Opening the recording file
+  log("Opening " + filename);
+  dataFile = SD.open(filename, FILE_WRITE);
+  // if the file is available, write header
+  if (dataFile) {
+    log(filename + " successfully opened.");
+    dataFile.println();
+    dataFile.println(); */
+    Serial.println("time s, pressure hPa, relative humidity \%, temperature C");
+  /*  dataFile.close();
+  }
+  // if the file isn't open, pop up an error and stop
+  else {
+    log("Error opening " + filename);
+    while (1);
+  } */
+
+  Serial.println("PHT recording started.");
+
+  digitalWrite(13, LOW); // turn the LED off by making the voltage LOW
 }
 
 void loop() {
-    sensors_event_t temp, pressure, humidity;
-    ms8607.getEvent(&pressure, &temp, &humidity);
+  digitalWrite(13, HIGH); // turn the LED on (HIGH is the voltage level)
+  
+  // read the sensors
+  sensors_event_t temp, pressure, humidity;
+  ms8607.getEvent(&pressure, &temp, &humidity);
 
-    Serial.println("time s, pressure hPa, humidity rH, temperature C");
-    Serial.print(millis()/1000); Serial.print(", ");
-    Serial.print(pressure.pressure); Serial.print(", ");
-    Serial.print(humidity.relative_humidity); Serial.print(", ");
-    Serial.print(temp.temperature);
-    Serial.println("");
+  // make a string for assembling the data to record
+  String dataString = String(millis()/1000) + ", " + String(pressure.pressure) + ", " + String(humidity.relative_humidity) + ", " + String(temp.temperature);
+  // String dataString =  String(millis()/1000) + ", " + String(1013.5) + ", " + String(50.4) + ", " + String(26.2);
 
-    delay(1000); // Measure every 1000ms
+  // dataFile = SD.open(filename, FILE_WRITE);   // Open the file for recording the data
+
+  // if the file is available, write to it
+  // if (1) {
+    Serial.println(dataString);
+    // dataFile.close();
+
+    // if there is no measurement, record an error
+    if (pressure.pressure == old_pressure && humidity.relative_humidity == old_hum && temp.temperature == old_temp) {
+      Serial.println("Warning: no PHT measurement");
+    }
+    else digitalWrite(13, LOW); // turn the LED off by making the voltage LOW
+  // }
+  /* // if the file isn't open, record an error
+  else {
+    SD.begin(chipSelect);
+    log("Error opening " + filename);
+  } */
+
+  old_pressure = pressure.pressure;
+  old_hum = humidity.relative_humidity;
+  old_temp = temp.temperature;
+  
+  Serial.println(old_pressure);
+  Serial.println(pressure.pressure);
+  Serial.println(old_hum);
+  Serial.println(humidity.relative_humidity);
+  Serial.println(old_temp);
+  Serial.println(temp.temperature);
+
+  delay((millis()/dtime+1)*dtime-millis());   // Wait until the next multiple of dtime
 }
