@@ -2,7 +2,7 @@
 Copyright (c) 2023 HyperBall team
 
 Reads pressure, temperature and humidity, writes in CSV file on the SD card.
-Led on Adalogger will be on during initialization and then during measurements.
+LED on Adalogger will be on during initialization and then during measurements.
 Messages about the status of the program will be saved in "log" file.
 
 filename: name of the file
