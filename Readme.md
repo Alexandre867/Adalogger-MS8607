@@ -33,3 +33,6 @@ https://learn.adafruit.com/scanning-i2c-addresses/arduino
 
 # PHT sensor recording
 - Upload [`PHT_recording_prog.ino`](https://github.com/Alexandre867/Adalogger-MS8607/blob/main/PHT_recording_prog/PHT_recording_prog.ino)
+
+# Copyright notice
+Copyright © 2023 HyperBall team
